@@ -39,12 +39,14 @@ void MainFrame::CreateControls() {
 	auto labelPanel2 = new wxPanel(upperPanel, wxID_ANY, wxDefaultPosition, wxSize(200, 100));
 	labelPanel2->SetFont(mainFont);
 	labelPanel2->SetBackgroundColour(wxColour(100, 200, 100));
-	auto tabPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(200, 100));
-	tabPanel->SetFont(mainFont);
-	tabPanel->SetBackgroundColour(wxColour(200, 100, 100));
+	//auto tabPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(200, 100));
+	//tabPanel->SetFont(mainFont);
+	//tabPanel->SetBackgroundColour(wxColour(200, 100, 100));
 
 	auto mainSizer = new wxBoxSizer(wxVERTICAL);
 	auto tableInfoSizer = new wxBoxSizer(wxHORIZONTAL);
+	auto tableInfoLabelSizer = new wxBoxSizer(wxHORIZONTAL);
+	auto tableInfoButtonSizer = new wxBoxSizer(wxHORIZONTAL);
 
 	auto idLabel = new wxStaticText(labelPanel, wxID_ANY, "Table ID: 000");
 	auto nameLabel = new wxStaticText(labelPanel, wxID_ANY, "Table Name: Students");
@@ -52,12 +54,18 @@ void MainFrame::CreateControls() {
 	auto changeIdButton = new wxButton(labelPanel2, wxID_ANY, "Change ID");
 	auto changeNameButton = new wxButton(labelPanel2, wxID_ANY, "Change Name");
 	
+	auto tabs = new wxNotebook(this, wxID_ANY);
+	tabs->SetInternalBorder(0);
+	tabs->AddPage(new wxPanel(tabs, wxID_ANY, wxDefaultPosition, wxDefaultSize), "Schema");
+	tabs->AddPage(new wxPanel(tabs, wxID_ANY, wxDefaultPosition, wxDefaultSize), "Data");
+	tabs->AddPage(new wxPanel(tabs, wxID_ANY, wxDefaultPosition, wxDefaultSize), "Json");
+
 	tableInfoSizer->Add(labelPanel, 0, wxEXPAND | wxALL, 10);
 	tableInfoSizer->Add(labelPanel2, 0, wxEXPAND | wxALL, 10);
 	
 	upperPanel->SetSizerAndFit(tableInfoSizer);
 	mainSizer->Add(upperPanel, 0, wxEXPAND | wxALL, 10);
-	mainSizer->Add(tabPanel, 1, wxEXPAND | wxALL, 10);
+	mainSizer->Add(tabs, 5, wxEXPAND | wxALL, 10);
 
 	this->SetSizerAndFit(mainSizer);
 	/*
