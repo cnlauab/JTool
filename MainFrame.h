@@ -1,5 +1,13 @@
 #pragma once
 #include <wx/wx.h>
+#include <wx/listctrl.h>
+#include <json/json.h>
+
+#include <vector>
+#include <string>
+
+#include "Task.h"
+#include "Table.h"
 
 class MainFrame : public wxFrame
 {
@@ -7,6 +15,8 @@ public:
 	MainFrame(const wxString& title);
 
 private:
+	void IntroDialogue();
+	void LoadTable(std::string path);
 	void CreateControls();
 	void BindEventHandlers();
 	void AddSavedTasks();
@@ -16,6 +26,8 @@ private:
 	void OnListKeyDown(wxKeyEvent& evt);
 	void OnClearButtonClicked(wxCommandEvent& evt);
 	void OnWindowClosed(wxCloseEvent& evt);
+
+	void OnTestButtonClicked(wxCommandEvent& evt);
 
 	void AddTaskFromInput();
 	void DeleteSelectedTask();
@@ -29,5 +41,9 @@ private:
 	wxCheckListBox* checkListBox;
 	wxButton* clearButton;
 
+	bool test = true;
+	wxButton* testButton;
+
+	Json::Value content;
 };
 
