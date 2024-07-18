@@ -1,19 +1,29 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <map>
 #include <unordered_map>
-#include "Data.h"
+#include <json/json.h>
 
 class Table
 {
 public:
 	int id;
 	std::string name;
-	std::unordered_map<std::string, std::string> fieldToType;
-	std::vector<Data> data;
+	std::map<std::string, std::string> schema;
+	std::vector<std::unordered_map<std::string, std::string>> data;
 
+	Table();
 	Table(int _id, std::string _name) : id(_id), name(_name) {}
+	Table(Json::Value& root);
 
+	void AddField(std::string& name, std::string& type);
+	void DeleteField(std::string& name);
+	void AddRow(std::unordered_map<std::string, std::string>& entry);
+	void DeleteRow(int index);
+	void InsertRow(int index);
+
+	std::string toString();
 private:
 	int size;
 };

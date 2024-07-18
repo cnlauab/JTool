@@ -6,6 +6,8 @@
 
 #include <vector>
 #include <string>
+#include <filesystem>
+#include <fstream>
 
 #include "Task.h"
 #include "Table.h"
@@ -17,6 +19,7 @@ public:
 
 private:
 	void IntroDialogue();
+	void SetupMainMenu();
 	void LoadTable(std::string path);
 	void CreateControls();
 	void BindEventHandlers();

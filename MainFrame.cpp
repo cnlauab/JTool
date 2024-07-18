@@ -2,9 +2,36 @@
 
 MainFrame::MainFrame(const wxString& title) : wxFrame(nullptr, wxID_ANY, title){
 	IntroDialogue();
+	SetupMainMenu();
 	CreateControls();
 	BindEventHandlers();
 	//AddSavedTasks();
+}
+
+void MainFrame::SetupMainMenu()
+{
+	wxMenuBar* menuBar = new wxMenuBar();
+
+	wxMenu* fileMenu = new wxMenu();
+	fileMenu->Append(wxID_NEW);
+	fileMenu->Append(wxID_OPEN);
+	fileMenu->AppendSeparator();
+	fileMenu->Append(wxID_SAVE);
+	fileMenu->Append(wxID_SAVEAS);
+
+	wxMenu* editMenu = new wxMenu();
+
+	editMenu->Append(wxID_UNDO);
+	editMenu->Append(wxID_REDO);
+	editMenu->AppendSeparator();
+	editMenu->Append(wxID_CUT);
+	editMenu->Append(wxID_COPY);
+	editMenu->Append(wxID_PASTE);
+
+	menuBar->Append(fileMenu, "&File");
+	menuBar->Append(editMenu, "&Edit");
+
+	SetMenuBar(menuBar);
 }
 
 void MainFrame::IntroDialogue() {
@@ -19,10 +46,17 @@ void MainFrame::IntroDialogue() {
 }
 
 void MainFrame::LoadTable(std::string path) {
+	std::ifstream istream(path);
 	Json::Value json;
 	Json::Reader reader;
-	reader.parse(path, content);
-	wxMessageBox(path, "Message", wxOK | wxICON_INFORMATION);
+	if (!reader.parse(istream, json)) {
+		wxMessageBox("Could not parse JSON", "Message", wxOK | wxICON_INFORMATION);
+	}
+	else {
+		Table testTable = Table(json);
+		std::string s = testTable.toString();
+		wxMessageBox(s, "Message", wxOK | wxICON_INFORMATION);
+	}
 
 }
 
@@ -47,6 +81,8 @@ void MainFrame::CreateControls() {
 	auto tableInfoSizer = new wxBoxSizer(wxHORIZONTAL);
 	auto tableInfoLabelSizer = new wxBoxSizer(wxHORIZONTAL);
 	auto tableInfoButtonSizer = new wxBoxSizer(wxHORIZONTAL);
+	auto schemaSizer = new wxBoxSizer(wxVERTICAL);
+	auto dataSizer = new wxBoxSizer(wxVERTICAL);
 
 	auto idLabel = new wxStaticText(labelPanel, wxID_ANY, "Table ID: 000");
 	auto nameLabel = new wxStaticText(labelPanel, wxID_ANY, "Table Name: Students");
@@ -56,9 +92,9 @@ void MainFrame::CreateControls() {
 	
 	auto tabs = new wxNotebook(this, wxID_ANY);
 	tabs->SetInternalBorder(0);
-	tabs->AddPage(new wxPanel(tabs, wxID_ANY, wxDefaultPosition, wxDefaultSize), "Schema");
-	tabs->AddPage(new wxPanel(tabs, wxID_ANY, wxDefaultPosition, wxDefaultSize), "Data");
-	tabs->AddPage(new wxPanel(tabs, wxID_ANY, wxDefaultPosition, wxDefaultSize), "Json");
+	tabs->AddPage(new wxPanel(tabs, wxID_ANY, wxDefaultPosition, wxSize(400, 400)), "Schema");
+	tabs->AddPage(new wxPanel(tabs, wxID_ANY, wxDefaultPosition, wxSize(400, 400)), "Data");
+	tabs->AddPage(new wxPanel(tabs, wxID_ANY, wxDefaultPosition, wxSize(400, 400)), "Json");
 
 	tableInfoSizer->Add(labelPanel, 0, wxEXPAND | wxALL, 10);
 	tableInfoSizer->Add(labelPanel2, 0, wxEXPAND | wxALL, 10);
