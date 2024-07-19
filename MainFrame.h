@@ -18,13 +18,17 @@ public:
 	MainFrame(const wxString& title);
 
 private:
+	//Setup
 	void IntroDialogue();
 	void SetupMainMenu();
 	void LoadTable(std::string path);
 	void CreateControls();
+	void CreateSchemaTab();
 	void BindEventHandlers();
 	void AddSavedTasks();
-
+	//Update
+	void UpdateSchemaView();
+	//Binding
 	void OnAddButtonClicked(wxCommandEvent& evt);
 	void OnInputEnter(wxCommandEvent& evt);
 	void OnListKeyDown(wxKeyEvent& evt);
@@ -45,9 +49,13 @@ private:
 	wxCheckListBox* checkListBox;
 	wxButton* clearButton;
 
+	wxListView* schemaListView;
+	wxListView* dataListView;
+
 	bool test = true;
 	wxButton* testButton;
 
-	Json::Value content;
+	Json::Value json;
+	Table table;
 };
 

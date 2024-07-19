@@ -6,6 +6,7 @@ MainFrame::MainFrame(const wxString& title) : wxFrame(nullptr, wxID_ANY, title){
 	CreateControls();
 	BindEventHandlers();
 	//AddSavedTasks();
+	UpdateSchemaView();
 }
 
 void MainFrame::SetupMainMenu()
@@ -47,14 +48,13 @@ void MainFrame::IntroDialogue() {
 
 void MainFrame::LoadTable(std::string path) {
 	std::ifstream istream(path);
-	Json::Value json;
 	Json::Reader reader;
 	if (!reader.parse(istream, json)) {
 		wxMessageBox("Could not parse JSON", "Message", wxOK | wxICON_INFORMATION);
 	}
 	else {
-		Table testTable = Table(json);
-		std::string s = testTable.toString();
+		table = Table(json);
+		std::string s = table.toString();
 		wxMessageBox(s, "Message", wxOK | wxICON_INFORMATION);
 	}
 
@@ -92,9 +92,12 @@ void MainFrame::CreateControls() {
 	
 	auto tabs = new wxNotebook(this, wxID_ANY);
 	tabs->SetInternalBorder(0);
-	tabs->AddPage(new wxPanel(tabs, wxID_ANY, wxDefaultPosition, wxSize(400, 400)), "Schema");
-	tabs->AddPage(new wxPanel(tabs, wxID_ANY, wxDefaultPosition, wxSize(400, 400)), "Data");
-	tabs->AddPage(new wxPanel(tabs, wxID_ANY, wxDefaultPosition, wxSize(400, 400)), "Json");
+	auto schemaPanel = new wxPanel(tabs, wxID_ANY, wxDefaultPosition, wxSize(400, 400));
+	auto dataPanel = new wxPanel(tabs, wxID_ANY, wxDefaultPosition, wxSize(400, 400));
+	auto jsonPanel = new wxPanel(tabs, wxID_ANY, wxDefaultPosition, wxSize(400, 400));
+	tabs->AddPage(schemaPanel, "Schema");
+	tabs->AddPage(dataPanel, "Data");
+	tabs->AddPage(jsonPanel, "Json");
 
 	tableInfoSizer->Add(labelPanel, 0, wxEXPAND | wxALL, 10);
 	tableInfoSizer->Add(labelPanel2, 0, wxEXPAND | wxALL, 10);
@@ -104,6 +107,10 @@ void MainFrame::CreateControls() {
 	mainSizer->Add(tabs, 5, wxEXPAND | wxALL, 10);
 
 	this->SetSizerAndFit(mainSizer);
+
+	schemaListView = new wxListView(schemaPanel);
+	schemaListView->AppendColumn("Name");
+	schemaListView->AppendColumn("Type");
 	/*
 	wxFont headlineFont(wxFontInfo(wxSize(0, 36)).Bold());
 	wxFont mainFont(wxFontInfo(wxSize(0, 24)));
@@ -122,6 +129,9 @@ void MainFrame::CreateControls() {
 	clearButton = new wxButton(panel, wxID_ANY, "Clear", wxPoint(100, 525), wxSize(100, 35));
 	*/
 
+}
+
+void MainFrame::CreateSchemaTab() {
 }
 
 void MainFrame::BindEventHandlers()
@@ -143,6 +153,17 @@ void MainFrame::AddSavedTasks()
 		int index = checkListBox->GetCount();
 		checkListBox->Insert(task.description, index);
 		checkListBox->Check(index, task.done);
+	}
+}
+
+void MainFrame::UpdateSchemaView()
+{
+	
+	int counter = 0;
+	for (auto field : table.schema) {
+		schemaListView->InsertItem(counter, field.first);
+		schemaListView->SetItem(counter, 1, field.second);
+		counter++;
 	}
 }
 
