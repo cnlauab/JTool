@@ -11,6 +11,7 @@ public:
 	int id;
 	std::string name;
 	std::map<std::string, std::string> schema;
+	std::unordered_map<std::string, int> columnIndex;
 	std::vector<std::unordered_map<std::string, std::string>> data;
 
 	Table();
@@ -24,6 +25,7 @@ public:
 	void InsertRow(int index);
 
 	std::string toString();
+	std::string toJson();
 private:
 	int size;
 };

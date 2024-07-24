@@ -27,6 +27,22 @@ Table::Table(Json::Value& root) {
 	}
 }
 
+void Table::AddField(std::string& name, std::string& type)
+{
+	if (schema.find(name) == schema.end()) {
+		schema[name] = type;
+		columnIndex[name] = columnIndex.size();
+	}
+}
+
+void Table::DeleteField(std::string& name)
+{
+	if (schema.find(name) != schema.end()) {
+		schema.erase(name);
+		columnIndex.erase(name);
+	}
+}
+
 std::string Table::toString() {
 	std::string result = "";
 

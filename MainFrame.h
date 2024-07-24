@@ -28,6 +28,8 @@ private:
 	void AddSavedTasks();
 	//Update
 	void UpdateSchemaView();
+	void UpdateDataViewColumn();
+	void UpdateDataView();
 	//Binding
 	void OnAddButtonClicked(wxCommandEvent& evt);
 	void OnInputEnter(wxCommandEvent& evt);
