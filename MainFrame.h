@@ -23,36 +23,35 @@ private:
 	void SetupMainMenu();
 	void LoadTable(std::string path);
 	void CreateControls();
-	void CreateSchemaTab();
 	void BindEventHandlers();
-	void AddSavedTasks();
 	//Update
+	void UpdateInfoView();
 	void UpdateSchemaView();
 	void UpdateDataViewColumn();
 	void UpdateDataView();
+	//Menu
+	void OnNewMenuClicked(wxCommandEvent& evt);
+	void OnOpenMenuClicked(wxCommandEvent& evt);
+	void OnSaveMenuClicked(wxCommandEvent& evt);
+	void OnSaveAsMenuClicked(wxCommandEvent& evt);
 	//Binding
-	void OnAddButtonClicked(wxCommandEvent& evt);
-	void OnInputEnter(wxCommandEvent& evt);
-	void OnListKeyDown(wxKeyEvent& evt);
-	void OnClearButtonClicked(wxCommandEvent& evt);
-	void OnWindowClosed(wxCloseEvent& evt);
+	void OnEditNameClicked(wxCommandEvent& evt);
+	void OnEditIdClicked(wxCommandEvent& evt);
 
-	void OnTestButtonClicked(wxCommandEvent& evt);
+	void OnAddFieldClicked(wxCommandEvent& evt);
+	void OnDeleteFieldClicked(wxCommandEvent& evt);
+	void OnEditFieldClicked(wxCommandEvent& evt);
 
-	void AddTaskFromInput();
-	void DeleteSelectedTask();
-	void MoveSelectedTask(int offset);
-	void SwapTasks(int i, int j);
-
-	wxPanel* panel;
-	wxStaticText* headlineText;
-	wxTextCtrl* inputField;
-	wxButton* addButton;
-	wxCheckListBox* checkListBox;
-	wxButton* clearButton;
-
+	void OnAddDataClicked(wxCommandEvent& evt);
+	void OnDeleteDataClicked(wxCommandEvent& evt);
+	void OnEditDataClicked(wxCommandEvent& evt);
+	//Cache
+	wxTextCtrl* nameField;
+	wxTextCtrl* idField;
+	wxTextCtrl* sizeField;
 	wxListView* schemaListView;
 	wxListView* dataListView;
+	wxTextCtrl* jsonField;
 
 	bool test = true;
 	wxButton* testButton;
