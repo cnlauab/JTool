@@ -259,7 +259,24 @@ void MainFrame::OnEditIdClicked(wxCommandEvent& evt)
 
 void MainFrame::OnAddFieldClicked(wxCommandEvent& evt)
 {
-	bool result = table.AddField("empty", "string");
+	std::vector<std::string> labels = { "Name", "Type"};
+	std::string key;
+	std::string value;
+	auto input = new InputDialog(labels, this);
+	if (input->ShowModal() == wxID_OK) {
+		auto values = input->GetInputs();
+		if (values.size() > 1) {
+			key = values[0];
+			value = values[1];
+		}
+		else {
+			return;
+		}
+	}
+	else {
+		return;
+	}
+	bool result = table.AddField(key, value);
 	if (result) {
 		dataListView->ClearAll();
 		schemaListView->DeleteAllItems();
@@ -303,17 +320,72 @@ void MainFrame::OnEditFieldClicked(wxCommandEvent& evt)
 
 void MainFrame::OnAddDataClicked(wxCommandEvent& evt)
 {
-	auto result = wxMessageBox("Add Data", "JTool", wxYES_NO | wxICON_INFORMATION);
+	std::vector<std::string> labels;
+	for (auto field : table.schema) {
+		labels.push_back(field.first);
+	}
+	auto input = new InputDialog(labels, this);
+	if (input->ShowModal() == wxID_OK) {
+		std::map<std::string, std::string> row;
+		auto values = input->GetInputs();
+		if (values.size() > 0) {
+			for (int i = 0; i < values.size(); i++) {
+				row.insert(std::pair(labels[i], values[i]));
+			}
+		}
+		else {
+			return;
+		}
+		bool result = table.AddRow(row);
+		if (result) {
+			dataListView->DeleteAllItems();
+			UpdateInfoView();
+			UpdateDataView();
+			PrintLog(table.toString());
+		}
+	}
 }
 
 void MainFrame::OnDeleteDataClicked(wxCommandEvent& evt)
 {
-	auto result = wxMessageBox("Delete Data", "JTool", wxYES_NO | wxICON_INFORMATION);
+	long selected = dataListView->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+	if (selected == -1) return;
+	bool result = table.DeleteRow(selected);
+	if (result) {
+		dataListView->DeleteAllItems();
+		UpdateInfoView();
+		UpdateDataView();
+		PrintLog(table.toString());
+	}
 }
 
 void MainFrame::OnEditDataClicked(wxCommandEvent& evt)
 {
-	auto result = wxMessageBox("Edit Data", "JTool", wxYES_NO | wxICON_INFORMATION);
+	int selected = dataListView->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+	if (selected == -1) return;
+	std::vector<std::string> labels;
+	for (auto field : table.schema) {
+		labels.push_back(field.first);
+	}
+	auto input = new InputDialog(labels, this);
+	if (input->ShowModal() == wxID_OK) {
+		auto values = input->GetInputs();
+		if (values.size() > 0) {
+			for (int i = 0; i < values.size(); i++) {
+				table.EditRow(selected, { labels[i], values[i] });
+			}
+		}
+		else {
+			return;
+		}
+		bool result = true;
+		if (result) {
+			dataListView->DeleteAllItems();
+			UpdateInfoView();
+			UpdateDataView();
+			PrintLog(table.toString());
+		}
+	}
 }
 
 void MainFrame::PrintLog(std::string message)

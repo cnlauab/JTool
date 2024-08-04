@@ -25,12 +25,13 @@ Table::Table(Json::Value& root) {
 		int s = root["data"].size();
 		for (int i = 0; i < s; i++) {
 			size++;
-			data.push_back(Row());
+			std::map<std::string, std::string> row;
 			for (auto field : schema) {
 				std::string key = field.first;
 				std::string value = root["data"][i][field.first].asString();
-				data[i].AddField(key, value);
+				row.insert({ key, value});
 			}
+			AddRow(row);
 		}
 	}
 }
@@ -65,7 +66,7 @@ bool Table::DeleteField(std::string name)
 		schema.pop_back();
 		//data
 		for (auto& row : data) {
-			row.DeleteField(name);
+			row.second.DeleteField(name);
 		}
 	}
 	return result;
@@ -79,6 +80,32 @@ bool Table::EditField(std::string name, std::string type)
 		schema[i].second = type;
 	}
 	return result;
+}
+
+bool Table::AddRow(std::map<std::string, std::string>& entry)
+{
+	int i = data.size();
+	data.insert({ i, Row(entry) });
+	size++;
+	return true;
+}
+
+bool Table::DeleteRow(int index)
+{
+	bool result = index < data.size();
+	if (result) {
+		for(int i = index; i < data.size() - 1; i++){
+			data[i] = data[i + 1];
+		}
+		data.erase(data.size() - 1);
+		size--;
+	}
+	return result;
+}
+
+void Table::EditRow(int index, std::pair<std::string, std::string> cell)
+{
+	data[index].EditCell(cell.first, cell.second);
 }
 
 std::string Table::toString() {
@@ -97,7 +124,7 @@ std::string Table::toString() {
 	}
 	result += "\nData: \n";
 	for (auto row : data) {
-		for (auto column : row.data) {
+		for (auto column : row.second.data) {
 			result += column.first + ": " + column.second + "\n";
 		}
 		result += "\n";

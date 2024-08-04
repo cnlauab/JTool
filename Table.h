@@ -13,7 +13,7 @@ public:
 	int id;
 	std::string name;
 	std::vector<std::pair<std::string, std::string>> schema;
-	std::vector<Row> data;
+	std::map<int,Row> data;
 	std::unordered_map<std::string, int> fieldIndex;
 
 	Table();
@@ -24,9 +24,9 @@ public:
 	bool DeleteField(std::string name);
 	bool EditField(std::string name, std::string type);
 
-	void AddRow(std::map<std::string, std::string>& entry);
-	void DeleteRow(int index);
-	void InsertRow(int index);
+	bool AddRow(std::map<std::string, std::string>& entry);
+	bool DeleteRow(int index);
+	void EditRow(int index, std::pair<std::string, std::string> cell);
 
 	std::string toString();
 	std::string toJson();
