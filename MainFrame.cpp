@@ -5,8 +5,10 @@ MainFrame::MainFrame(const wxString& title) : wxFrame(nullptr, wxID_ANY, title){
 	SetupMainMenu();
 	CreateControls();
 	BindEventHandlers();
+	UpdateInfoView();
 	UpdateSchemaView();
 	UpdateDataView();
+	PrintLog(table.toString());
 }
 
 void MainFrame::SetupMainMenu()
@@ -54,10 +56,7 @@ void MainFrame::LoadTable(std::string path) {
 	}
 	else {
 		table = Table(json);
-		std::string s = table.toString();
-		wxMessageBox(s, "Message", wxOK | wxICON_INFORMATION);
 	}
-
 }
 
 void MainFrame::CreateControls() {
@@ -75,16 +74,14 @@ void MainFrame::CreateControls() {
 	auto nameLable = new wxStaticText(upperPanel, wxID_ANY, "Table Name: ");
 	nameField = new wxTextCtrl(upperPanel, wxID_ANY, "0", wxDefaultPosition, wxSize(200, 20), wxTE_READONLY);
 	auto nameSizer = new wxBoxSizer(wxHORIZONTAL);
-	auto nameButton = new wxButton(upperPanel, wxID_ANY, "Edit");
-	nameButton->Bind(wxEVT_BUTTON, &MainFrame::OnEditNameClicked, this);
+	nameButton = new wxButton(upperPanel, wxID_ANY, "Edit");
 	nameSizer->Add(nameField);
 	nameSizer->Add(nameButton);
 
 	auto idLable = new wxStaticText(upperPanel, wxID_ANY, "Table ID: ");
 	idField = new wxTextCtrl(upperPanel, wxID_ANY, "0", wxDefaultPosition, wxSize(200, 20), wxTE_READONLY);
 	auto idSizer = new wxBoxSizer(wxHORIZONTAL);
-	auto idButton = new wxButton(upperPanel, wxID_ANY, "Edit");
-	idButton->Bind(wxEVT_BUTTON, &MainFrame::OnEditIdClicked, this);
+	idButton = new wxButton(upperPanel, wxID_ANY, "Edit");
 	idSizer->Add(idField);
 	idSizer->Add(idButton);
 
@@ -106,23 +103,23 @@ void MainFrame::CreateControls() {
 	auto schemaPanel = new wxPanel(tabs, wxID_ANY, wxDefaultPosition, wxSize(400, 400));
 	auto dataPanel = new wxPanel(tabs, wxID_ANY, wxDefaultPosition, wxSize(400, 400));
 	auto jsonPanel = new wxPanel(tabs, wxID_ANY, wxDefaultPosition, wxSize(400, 400));
+	auto logPanel = new wxPanel(tabs, wxID_ANY, wxDefaultPosition, wxSize(400, 400));
 	tabs->AddPage(schemaPanel, "Schema");
 	tabs->AddPage(dataPanel, "Data");
 	tabs->AddPage(jsonPanel, "Json");
+	tabs->AddPage(logPanel, "Log");
 
 	schemaListView = new wxListView(schemaPanel);
-	schemaListView->AppendColumn("Name");
-	schemaListView->AppendColumn("Type");
+	schemaListView->AppendColumn("SEQ");
+	schemaListView->AppendColumn("NAME");
+	schemaListView->AppendColumn("TYPE");
 
 	dataListView = new wxListView(dataPanel);
 
 	//Schema Tab
-	auto addSchemaButton = new wxButton(schemaPanel, wxID_ANY, "Add");
-	addSchemaButton->Bind(wxEVT_BUTTON, &MainFrame::OnAddFieldClicked, this);
-	auto deleteSchemaButton = new wxButton(schemaPanel, wxID_ANY, "Delete");
-	deleteSchemaButton->Bind(wxEVT_BUTTON, &MainFrame::OnDeleteFieldClicked, this);
-	auto editSchemaButton = new wxButton(schemaPanel, wxID_ANY, "Edit");
-	editSchemaButton->Bind(wxEVT_BUTTON, &MainFrame::OnEditFieldClicked, this);
+	addSchemaButton = new wxButton(schemaPanel, wxID_ANY, "Add");
+	deleteSchemaButton = new wxButton(schemaPanel, wxID_ANY, "Delete");
+	editSchemaButton = new wxButton(schemaPanel, wxID_ANY, "Edit");
 	auto schemaSizer = new wxBoxSizer(wxVERTICAL);
 	auto schemaButtonSizer = new wxBoxSizer(wxHORIZONTAL);
 	schemaButtonSizer->Add(addSchemaButton);
@@ -133,12 +130,9 @@ void MainFrame::CreateControls() {
 	schemaPanel->SetSizerAndFit(schemaSizer);
 
 	//Data Tab
-	auto addDataButton = new wxButton(dataPanel, wxID_ANY, "Add");
-	addDataButton->Bind(wxEVT_BUTTON, &MainFrame::OnAddDataClicked, this);
-	auto deleteDataButton = new wxButton(dataPanel, wxID_ANY, "Delete");
-	deleteDataButton->Bind(wxEVT_BUTTON, &MainFrame::OnDeleteDataClicked, this);
-	auto editDataButton = new wxButton(dataPanel, wxID_ANY, "Edit");
-	editDataButton->Bind(wxEVT_BUTTON, &MainFrame::OnEditDataClicked, this);
+	addDataButton = new wxButton(dataPanel, wxID_ANY, "Add");
+	deleteDataButton = new wxButton(dataPanel, wxID_ANY, "Delete");
+	editDataButton = new wxButton(dataPanel, wxID_ANY, "Edit");
 	auto dataSizer = new wxBoxSizer(wxVERTICAL);
 	auto dataButtonSizer = new wxBoxSizer(wxHORIZONTAL);
 	dataButtonSizer->Add(addDataButton);
@@ -149,7 +143,16 @@ void MainFrame::CreateControls() {
 	dataPanel->SetSizerAndFit(dataSizer);
 
 	//Json Tab
-	jsonField = new wxTextCtrl(jsonPanel, wxID_ANY, "", wxDefaultPosition, wxSize(500, 500), wxTE_READONLY);
+	auto jsonSizer = new wxBoxSizer(wxVERTICAL);
+	jsonField = new wxTextCtrl(jsonPanel, wxID_ANY, "", wxDefaultPosition, wxSize(500, 500), wxTE_READONLY | wxTE_MULTILINE);
+	jsonSizer->Add(jsonField, 1, wxALL | wxEXPAND, 0);
+	jsonPanel->SetSizerAndFit(jsonSizer);
+
+	//Log Tab
+	auto logSizer = new wxBoxSizer(wxVERTICAL);
+	logField = new wxTextCtrl(logPanel, wxID_ANY, "", wxDefaultPosition, wxSize(500, 500), wxTE_READONLY | wxTE_MULTILINE);
+	logSizer->Add(logField, 1, wxALL | wxEXPAND, 0);
+	logPanel->SetSizerAndFit(logSizer);
 
 	//Main Sizer
 	mainSizer->Add(upperPanel, 1, wxEXPAND | wxALL, 10);
@@ -159,30 +162,36 @@ void MainFrame::CreateControls() {
 
 void MainFrame::BindEventHandlers()
 {
-	/*
-	addButton->Bind(wxEVT_BUTTON, &MainFrame::OnAddButtonClicked, this);
-	testButton->Bind(wxEVT_BUTTON, &MainFrame::OnTestButtonClicked, this);
-	inputField->Bind(wxEVT_TEXT_ENTER, &MainFrame::OnInputEnter, this);
-	checkListBox->Bind(wxEVT_KEY_DOWN, &MainFrame::OnListKeyDown, this);
-	clearButton->Bind(wxEVT_BUTTON, &MainFrame::OnClearButtonClicked, this);
-	this->Bind(wxEVT_CLOSE_WINDOW, &MainFrame::OnWindowClosed, this);
-	*/
+	nameButton->Bind(wxEVT_BUTTON, &MainFrame::OnEditNameClicked, this);
+	idButton->Bind(wxEVT_BUTTON, &MainFrame::OnEditIdClicked, this);
+
+	addSchemaButton->Bind(wxEVT_BUTTON, &MainFrame::OnAddFieldClicked, this);
+	deleteSchemaButton->Bind(wxEVT_BUTTON, &MainFrame::OnDeleteFieldClicked, this);
+	editSchemaButton->Bind(wxEVT_BUTTON, &MainFrame::OnEditFieldClicked, this);
+
+	addDataButton->Bind(wxEVT_BUTTON, &MainFrame::OnAddDataClicked, this);
+	deleteDataButton->Bind(wxEVT_BUTTON, &MainFrame::OnDeleteDataClicked, this);
+	editDataButton->Bind(wxEVT_BUTTON, &MainFrame::OnEditDataClicked, this);
 }
 
 void MainFrame::UpdateInfoView()
 {
+	nameField->SetValue(table.name);
+	idField->SetValue(std::to_string(table.id));
+	sizeField->SetValue(std::to_string(table.data.size()));
 }
 
 void MainFrame::UpdateSchemaView()
 {
-	
-	int counter = 0;
+	for (int i = 0; i < table.schema.size(); i++) {
+		schemaListView->InsertItem(i, "");
+	}
 	for (auto field : table.schema) {
+		int i = table.fieldIndex[field.first];
 		dataListView->AppendColumn(field.first);
-		schemaListView->InsertItem(counter, field.first);
-		schemaListView->SetItem(counter, 1, field.second);
-		table.columnIndex[field.first] = counter;
-		counter++;
+		schemaListView->SetItem(i, 0, std::to_string(i));
+		schemaListView->SetItem(i, 1, field.first);
+		schemaListView->SetItem(i, 2, field.second);
 	}
 }
 
@@ -197,10 +206,11 @@ void MainFrame::UpdateDataView()
 {
 	for (int i = 0; i < table.data.size(); i++) {
 		dataListView->InsertItem(i, "");
-		for (auto pair : table.data[i]) {
+		for (auto pair : table.data[i].GetRow()) {
 			std::string field = pair.first;
 			std::string data = pair.second;
-			dataListView->SetItem(i, table.columnIndex[field], data);
+			int col = table.fieldIndex[field];
+			dataListView->SetItem(i, col, data);
 		}
 	}
 }
@@ -223,27 +233,72 @@ void MainFrame::OnSaveAsMenuClicked(wxCommandEvent& evt)
 
 void MainFrame::OnEditNameClicked(wxCommandEvent& evt)
 {
-	auto result = wxMessageBox("Edit Name", "JTool", wxYES_NO | wxICON_INFORMATION);
+	std::vector<std::string> labels = { "Name" };
+	auto input = new InputDialog(labels, this);
+	if (input->ShowModal() == wxID_OK) {
+		auto values = input->GetInputs();
+		if (values.size() > 0) {
+			table.name = values[0];
+			UpdateInfoView();
+		}
+	}
 }
 
 void MainFrame::OnEditIdClicked(wxCommandEvent& evt)
 {
-	auto result = wxMessageBox("Edit ID", "JTool", wxYES_NO | wxICON_INFORMATION);
+	std::vector<std::string> labels = { "ID" };
+	auto input = new InputDialog(labels, this);
+	if (input->ShowModal() == wxID_OK) {
+		auto values = input->GetInputs();
+		if (values.size() > 0) {
+			table.id = stoi(values[0]);
+			UpdateInfoView();
+		}
+	}
 }
 
 void MainFrame::OnAddFieldClicked(wxCommandEvent& evt)
 {
-	auto result = wxMessageBox("Add Field", "JTool", wxYES_NO | wxICON_INFORMATION);
+	bool result = table.AddField("empty", "string");
+	if (result) {
+		dataListView->ClearAll();
+		schemaListView->DeleteAllItems();
+		UpdateSchemaView();
+		UpdateDataView();
+		PrintLog(table.toString());
+	}
 }
 
 void MainFrame::OnDeleteFieldClicked(wxCommandEvent& evt)
 {
-	auto result = wxMessageBox("Delete Field", "JTool", wxYES_NO | wxICON_INFORMATION);
+	long selected = schemaListView->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+	if (selected == -1) return;
+	std::string key = table.schema[selected].first;
+	bool result = table.DeleteField(key);
+	if (result) {
+		dataListView->ClearAll();
+		schemaListView->DeleteAllItems();
+		UpdateSchemaView();
+		UpdateDataView();
+		PrintLog(table.toString());
+	}
 }
 
 void MainFrame::OnEditFieldClicked(wxCommandEvent& evt)
 {
-	auto result = wxMessageBox("Edit Field", "JTool", wxYES_NO | wxICON_INFORMATION);
+	long selected = schemaListView->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+	if (selected == -1) return;
+	std::vector<std::string> labels = {"Type"};
+	auto input = new InputDialog(labels, this);
+	if (input->ShowModal() == wxID_OK) {
+		auto values = input->GetInputs();
+		if (values.size() > 0) {
+			table.schema[selected].second = values[0];
+		}
+	}
+	schemaListView->DeleteAllItems();
+	UpdateSchemaView();
+	PrintLog(table.toString());
 }
 
 void MainFrame::OnAddDataClicked(wxCommandEvent& evt)
@@ -259,6 +314,13 @@ void MainFrame::OnDeleteDataClicked(wxCommandEvent& evt)
 void MainFrame::OnEditDataClicked(wxCommandEvent& evt)
 {
 	auto result = wxMessageBox("Edit Data", "JTool", wxYES_NO | wxICON_INFORMATION);
+}
+
+void MainFrame::PrintLog(std::string message)
+{
+	log.AppendLog(message);
+	logField->SetValue("");
+	*logField << log.PrintLog();
 }
 
 

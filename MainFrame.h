@@ -4,13 +4,15 @@
 #include <wx/notebook.h>
 #include <json/json.h>
 
+#include <array>
 #include <vector>
 #include <string>
 #include <filesystem>
 #include <fstream>
 
-#include "Task.h"
 #include "Table.h"
+#include "Log.h"
+#include "InputDialog.h"
 
 class MainFrame : public wxFrame
 {
@@ -45,6 +47,8 @@ private:
 	void OnAddDataClicked(wxCommandEvent& evt);
 	void OnDeleteDataClicked(wxCommandEvent& evt);
 	void OnEditDataClicked(wxCommandEvent& evt);
+
+	void PrintLog(std::string message);
 	//Cache
 	wxTextCtrl* nameField;
 	wxTextCtrl* idField;
@@ -52,11 +56,23 @@ private:
 	wxListView* schemaListView;
 	wxListView* dataListView;
 	wxTextCtrl* jsonField;
+	wxTextCtrl* logField;
+
+	//Button
+	wxButton* nameButton;
+	wxButton* idButton;
+	wxButton* addSchemaButton;
+	wxButton* deleteSchemaButton;
+	wxButton* editSchemaButton;
+	wxButton* addDataButton;
+	wxButton* deleteDataButton;
+	wxButton* editDataButton;
 
 	bool test = true;
 	wxButton* testButton;
 
 	Json::Value json;
 	Table table;
+	Log log;
 };
 
