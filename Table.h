@@ -29,7 +29,7 @@ public:
 	void EditRow(int index, std::pair<std::string, std::string> cell);
 
 	std::string toString();
-	std::string toJson();
+	Json::Value toJson();
 private:
 	int size;
 };

@@ -38,7 +38,6 @@ public:
     }
     std::string test() { return "There is Dialog " + std::to_string(textCtrls.size()); }
 private:
-    //std::vector<wxStaticText*> labelTexts;
     std::vector<wxTextCtrl*> textCtrls;
 };
 

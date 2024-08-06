@@ -35,6 +35,9 @@ std::string Row::GetCell(std::string key) {
 	if (FieldExist(key)) {
 		return data[key];
 	}
+	else {
+		return "";
+	}
 }
 std::map<std::string, std::string> Row::GetRow() {
 	return data;

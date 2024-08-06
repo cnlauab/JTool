@@ -31,6 +31,8 @@ private:
 	void UpdateSchemaView();
 	void UpdateDataViewColumn();
 	void UpdateDataView();
+	void UpdateJson();
+	void FullUpdate();
 	//Menu
 	void OnNewMenuClicked(wxCommandEvent& evt);
 	void OnOpenMenuClicked(wxCommandEvent& evt);
@@ -68,8 +70,7 @@ private:
 	wxButton* deleteDataButton;
 	wxButton* editDataButton;
 
-	bool test = true;
-	wxButton* testButton;
+	std::string currPath = "";
 
 	Json::Value json;
 	Table table;

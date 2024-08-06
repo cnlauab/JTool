@@ -131,3 +131,21 @@ std::string Table::toString() {
 	}
 	return result;
 }
+
+Json::Value Table::toJson()
+{
+	Json::Value root;
+	root["id"] = id;
+	root["name"] = name;
+	for (int i = 0; i < schema.size(); i++) {
+		root["schema"][i]["name"] = schema[i].first;
+		root["schema"][i]["type"] = schema[i].second;
+	}
+	for (int i = 0; i < data.size(); i++) {
+		for (int j = 0; j < schema.size(); j++) {
+			std::string key = schema[j].first;
+			root["data"][i][key] = data[i].GetCell(key);
+		}
+	}
+	return root;
+}

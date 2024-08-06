@@ -1,14 +1,11 @@
 #include "MainFrame.h"
 
 MainFrame::MainFrame(const wxString& title) : wxFrame(nullptr, wxID_ANY, title){
-	IntroDialogue();
 	SetupMainMenu();
 	CreateControls();
 	BindEventHandlers();
-	UpdateInfoView();
-	UpdateSchemaView();
-	UpdateDataView();
-	PrintLog(table.toString());
+	IntroDialogue();
+	FullUpdate();
 }
 
 void MainFrame::SetupMainMenu()
@@ -26,10 +23,6 @@ void MainFrame::SetupMainMenu()
 
 	editMenu->Append(wxID_UNDO);
 	editMenu->Append(wxID_REDO);
-	editMenu->AppendSeparator();
-	editMenu->Append(wxID_CUT);
-	editMenu->Append(wxID_COPY);
-	editMenu->Append(wxID_PASTE);
 
 	menuBar->Append(fileMenu, "&File");
 	menuBar->Append(editMenu, "&Edit");
@@ -56,6 +49,7 @@ void MainFrame::LoadTable(std::string path) {
 	}
 	else {
 		table = Table(json);
+		currPath = path;
 	}
 }
 
@@ -172,6 +166,11 @@ void MainFrame::BindEventHandlers()
 	addDataButton->Bind(wxEVT_BUTTON, &MainFrame::OnAddDataClicked, this);
 	deleteDataButton->Bind(wxEVT_BUTTON, &MainFrame::OnDeleteDataClicked, this);
 	editDataButton->Bind(wxEVT_BUTTON, &MainFrame::OnEditDataClicked, this);
+
+	this->Bind(wxEVT_MENU, &MainFrame::OnNewMenuClicked, this, wxID_NEW);
+	this->Bind(wxEVT_MENU, &MainFrame::OnOpenMenuClicked, this, wxID_OPEN);
+	this->Bind(wxEVT_MENU, &MainFrame::OnSaveMenuClicked, this, wxID_SAVE);
+	this->Bind(wxEVT_MENU, &MainFrame::OnSaveAsMenuClicked, this, wxID_SAVEAS);
 }
 
 void MainFrame::UpdateInfoView()
@@ -215,20 +214,67 @@ void MainFrame::UpdateDataView()
 	}
 }
 
+void MainFrame::UpdateJson()
+{
+	Json::StyledWriter styledWriter;
+	json = table.toJson();
+	jsonField->SetValue(styledWriter.write(json));
+}
+
+void MainFrame::FullUpdate()
+{
+	dataListView->ClearAll();
+	schemaListView->DeleteAllItems();
+	UpdateInfoView();
+	UpdateSchemaView();
+	UpdateDataView();
+	UpdateJson();
+}
+
 void MainFrame::OnNewMenuClicked(wxCommandEvent& evt)
 {
+	table = Table();
+	currPath = "";
+	FullUpdate();
 }
 
 void MainFrame::OnOpenMenuClicked(wxCommandEvent& evt)
 {
+	wxFileDialog dialog(this, "Open File", "", "", "Json Files (*.json;*.txt)|*.json;*.txt", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+	if (dialog.ShowModal() == wxID_CANCEL) {
+		return;
+	}
+	currPath = dialog.GetPath().ToStdString();
+	LoadTable(currPath);
+	FullUpdate();
 }
 
 void MainFrame::OnSaveMenuClicked(wxCommandEvent& evt)
 {
+	if (currPath.size() <= 0) {
+		wxFileDialog dialog(this, "Save File", "", "", "Json Files (*.json;*.txt)|*.json;*.txt", wxFD_SAVE);
+		if (dialog.ShowModal() == wxID_CANCEL) {
+			return;
+		}
+		currPath = dialog.GetPath().ToStdString();
+	}
+	Json::StyledWriter styledWriter;
+	std::ofstream file(currPath);
+	file << styledWriter.write(json);
+	file.close();
 }
 
 void MainFrame::OnSaveAsMenuClicked(wxCommandEvent& evt)
 {
+	wxFileDialog dialog(this, "Save File", "", "", "Json Files (*.json;*.txt)|*.json;*.txt", wxFD_SAVE);
+	if (dialog.ShowModal() == wxID_CANCEL) {
+		return;
+	}
+	currPath = dialog.GetPath().ToStdString();
+	Json::StyledWriter styledWriter;
+	std::ofstream file(currPath);
+	file << styledWriter.write(json);
+	file.close();
 }
 
 void MainFrame::OnEditNameClicked(wxCommandEvent& evt)
@@ -240,6 +286,7 @@ void MainFrame::OnEditNameClicked(wxCommandEvent& evt)
 		if (values.size() > 0) {
 			table.name = values[0];
 			UpdateInfoView();
+			UpdateJson();
 		}
 	}
 }
@@ -253,6 +300,7 @@ void MainFrame::OnEditIdClicked(wxCommandEvent& evt)
 		if (values.size() > 0) {
 			table.id = stoi(values[0]);
 			UpdateInfoView();
+			UpdateJson();
 		}
 	}
 }
@@ -282,7 +330,7 @@ void MainFrame::OnAddFieldClicked(wxCommandEvent& evt)
 		schemaListView->DeleteAllItems();
 		UpdateSchemaView();
 		UpdateDataView();
-		PrintLog(table.toString());
+		UpdateJson();
 	}
 }
 
@@ -297,7 +345,7 @@ void MainFrame::OnDeleteFieldClicked(wxCommandEvent& evt)
 		schemaListView->DeleteAllItems();
 		UpdateSchemaView();
 		UpdateDataView();
-		PrintLog(table.toString());
+		UpdateJson();
 	}
 }
 
@@ -315,7 +363,7 @@ void MainFrame::OnEditFieldClicked(wxCommandEvent& evt)
 	}
 	schemaListView->DeleteAllItems();
 	UpdateSchemaView();
-	PrintLog(table.toString());
+	UpdateJson();
 }
 
 void MainFrame::OnAddDataClicked(wxCommandEvent& evt)
@@ -341,7 +389,7 @@ void MainFrame::OnAddDataClicked(wxCommandEvent& evt)
 			dataListView->DeleteAllItems();
 			UpdateInfoView();
 			UpdateDataView();
-			PrintLog(table.toString());
+			UpdateJson();
 		}
 	}
 }
@@ -355,7 +403,7 @@ void MainFrame::OnDeleteDataClicked(wxCommandEvent& evt)
 		dataListView->DeleteAllItems();
 		UpdateInfoView();
 		UpdateDataView();
-		PrintLog(table.toString());
+		UpdateJson();
 	}
 }
 
@@ -383,7 +431,7 @@ void MainFrame::OnEditDataClicked(wxCommandEvent& evt)
 			dataListView->DeleteAllItems();
 			UpdateInfoView();
 			UpdateDataView();
-			PrintLog(table.toString());
+			UpdateJson();
 		}
 	}
 }
