@@ -280,7 +280,8 @@ void MainFrame::OnSaveAsMenuClicked(wxCommandEvent& evt)
 void MainFrame::OnEditNameClicked(wxCommandEvent& evt)
 {
 	std::vector<std::string> labels = { "Name" };
-	auto input = new InputDialog(labels, this);
+	std::vector<std::string> prefill = { table.name };
+	auto input = new InputDialog(labels, prefill, this);
 	if (input->ShowModal() == wxID_OK) {
 		auto values = input->GetInputs();
 		if (values.size() > 0) {
@@ -294,7 +295,8 @@ void MainFrame::OnEditNameClicked(wxCommandEvent& evt)
 void MainFrame::OnEditIdClicked(wxCommandEvent& evt)
 {
 	std::vector<std::string> labels = { "ID" };
-	auto input = new InputDialog(labels, this);
+	std::vector<std::string> prefill = { std::to_string(table.id) };
+	auto input = new InputDialog(labels, prefill, this);
 	if (input->ShowModal() == wxID_OK) {
 		auto values = input->GetInputs();
 		if (values.size() > 0) {
@@ -308,9 +310,10 @@ void MainFrame::OnEditIdClicked(wxCommandEvent& evt)
 void MainFrame::OnAddFieldClicked(wxCommandEvent& evt)
 {
 	std::vector<std::string> labels = { "Name", "Type"};
+	std::vector<std::string> prefill;
 	std::string key;
 	std::string value;
-	auto input = new InputDialog(labels, this);
+	auto input = new InputDialog(labels, prefill, this);
 	if (input->ShowModal() == wxID_OK) {
 		auto values = input->GetInputs();
 		if (values.size() > 1) {
@@ -354,25 +357,29 @@ void MainFrame::OnEditFieldClicked(wxCommandEvent& evt)
 	long selected = schemaListView->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 	if (selected == -1) return;
 	std::vector<std::string> labels = {"Type"};
-	auto input = new InputDialog(labels, this);
+	std::vector<std::string> prefill = { table.schema[selected].second };
+	auto input = new InputDialog(labels, prefill, this);
 	if (input->ShowModal() == wxID_OK) {
 		auto values = input->GetInputs();
 		if (values.size() > 0) {
 			table.schema[selected].second = values[0];
 		}
 	}
+	dataListView->ClearAll();
 	schemaListView->DeleteAllItems();
 	UpdateSchemaView();
+	UpdateDataView();
 	UpdateJson();
 }
 
 void MainFrame::OnAddDataClicked(wxCommandEvent& evt)
 {
 	std::vector<std::string> labels;
+	std::vector<std::string> prefill;
 	for (auto field : table.schema) {
 		labels.push_back(field.first);
 	}
-	auto input = new InputDialog(labels, this);
+	auto input = new InputDialog(labels, prefill, this);
 	if (input->ShowModal() == wxID_OK) {
 		std::map<std::string, std::string> row;
 		auto values = input->GetInputs();
@@ -412,10 +419,12 @@ void MainFrame::OnEditDataClicked(wxCommandEvent& evt)
 	int selected = dataListView->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 	if (selected == -1) return;
 	std::vector<std::string> labels;
+	std::vector<std::string> prefill;
 	for (auto field : table.schema) {
 		labels.push_back(field.first);
+		prefill.push_back(table.data[selected].GetCell(field.first));
 	}
-	auto input = new InputDialog(labels, this);
+	auto input = new InputDialog(labels, prefill, this);
 	if (input->ShowModal() == wxID_OK) {
 		auto values = input->GetInputs();
 		if (values.size() > 0) {
