@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <json/json.h>
 
+#include "Field.h"
 #include "Row.h"
 
 class Table
@@ -12,7 +13,7 @@ class Table
 public:
 	int id;
 	std::string name;
-	std::vector<std::pair<std::string, std::string>> schema;
+	std::vector<Field> schema;
 	std::map<int,Row> data;
 	std::unordered_map<std::string, int> fieldIndex;
 

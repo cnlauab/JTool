@@ -186,18 +186,18 @@ void MainFrame::UpdateSchemaView()
 		schemaListView->InsertItem(i, "");
 	}
 	for (auto field : table.schema) {
-		int i = table.fieldIndex[field.first];
-		dataListView->AppendColumn(field.first);
+		int i = table.fieldIndex[field.name];
+		dataListView->AppendColumn(field.name);
 		schemaListView->SetItem(i, 0, std::to_string(i));
-		schemaListView->SetItem(i, 1, field.first);
-		schemaListView->SetItem(i, 2, field.second);
+		schemaListView->SetItem(i, 1, field.name);
+		schemaListView->SetItem(i, 2, field.type);
 	}
 }
 
 void MainFrame::UpdateDataViewColumn()
 {
 	for (auto field : table.schema) {
-		dataListView->AppendColumn(field.first);
+		dataListView->AppendColumn(field.name);
 	}
 }
 
@@ -279,9 +279,10 @@ void MainFrame::OnSaveAsMenuClicked(wxCommandEvent& evt)
 
 void MainFrame::OnEditNameClicked(wxCommandEvent& evt)
 {
-	std::vector<std::string> labels = { "Name" };
+	std::vector<Field> fields; 
+	fields.push_back(Field("Name","string"));
 	std::vector<std::string> prefill = { table.name };
-	auto input = new InputDialog(labels, prefill, this);
+	auto input = new InputDialog(fields, prefill, this);
 	if (input->ShowModal() == wxID_OK) {
 		auto values = input->GetInputs();
 		if (values.size() > 0) {
@@ -294,9 +295,10 @@ void MainFrame::OnEditNameClicked(wxCommandEvent& evt)
 
 void MainFrame::OnEditIdClicked(wxCommandEvent& evt)
 {
-	std::vector<std::string> labels = { "ID" };
+	std::vector<Field> fields;
+	fields.push_back(Field("ID", "int"));
 	std::vector<std::string> prefill = { std::to_string(table.id) };
-	auto input = new InputDialog(labels, prefill, this);
+	auto input = new InputDialog(fields, prefill, this);
 	if (input->ShowModal() == wxID_OK) {
 		auto values = input->GetInputs();
 		if (values.size() > 0) {
@@ -309,7 +311,9 @@ void MainFrame::OnEditIdClicked(wxCommandEvent& evt)
 
 void MainFrame::OnAddFieldClicked(wxCommandEvent& evt)
 {
-	std::vector<std::string> labels = { "Name", "Type"};
+	std::vector<Field> labels; 
+	labels.push_back(Field("Name", "string"));
+	labels.push_back(Field("Type", "type"));
 	std::vector<std::string> prefill;
 	std::string key;
 	std::string value;
@@ -341,7 +345,7 @@ void MainFrame::OnDeleteFieldClicked(wxCommandEvent& evt)
 {
 	long selected = schemaListView->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 	if (selected == -1) return;
-	std::string key = table.schema[selected].first;
+	std::string key = table.schema[selected].name;
 	bool result = table.DeleteField(key);
 	if (result) {
 		dataListView->ClearAll();
@@ -356,13 +360,14 @@ void MainFrame::OnEditFieldClicked(wxCommandEvent& evt)
 {
 	long selected = schemaListView->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 	if (selected == -1) return;
-	std::vector<std::string> labels = {"Type"};
-	std::vector<std::string> prefill = { table.schema[selected].second };
+	std::vector<Field> labels;
+	labels.push_back(std::move( Field("Type", "type")));
+	std::vector<std::string> prefill = { table.schema[selected].name };
 	auto input = new InputDialog(labels, prefill, this);
 	if (input->ShowModal() == wxID_OK) {
 		auto values = input->GetInputs();
 		if (values.size() > 0) {
-			table.schema[selected].second = values[0];
+			table.schema[selected].name = values[0];
 		}
 	}
 	dataListView->ClearAll();
@@ -374,18 +379,14 @@ void MainFrame::OnEditFieldClicked(wxCommandEvent& evt)
 
 void MainFrame::OnAddDataClicked(wxCommandEvent& evt)
 {
-	std::vector<std::string> labels;
 	std::vector<std::string> prefill;
-	for (auto field : table.schema) {
-		labels.push_back(field.first);
-	}
-	auto input = new InputDialog(labels, prefill, this);
+	auto input = new InputDialog(table.schema, prefill, this);
 	if (input->ShowModal() == wxID_OK) {
 		std::map<std::string, std::string> row;
 		auto values = input->GetInputs();
 		if (values.size() > 0) {
 			for (int i = 0; i < values.size(); i++) {
-				row.insert(std::pair(labels[i], values[i]));
+				row.insert(std::pair(table.schema[i].name, values[i]));
 			}
 		}
 		else {
@@ -418,18 +419,16 @@ void MainFrame::OnEditDataClicked(wxCommandEvent& evt)
 {
 	int selected = dataListView->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 	if (selected == -1) return;
-	std::vector<std::string> labels;
 	std::vector<std::string> prefill;
 	for (auto field : table.schema) {
-		labels.push_back(field.first);
-		prefill.push_back(table.data[selected].GetCell(field.first));
+		prefill.push_back(table.data[selected].GetCell(field.name));
 	}
-	auto input = new InputDialog(labels, prefill, this);
+	auto input = new InputDialog(table.schema, prefill, this);
 	if (input->ShowModal() == wxID_OK) {
 		auto values = input->GetInputs();
 		if (values.size() > 0) {
 			for (int i = 0; i < values.size(); i++) {
-				table.EditRow(selected, { labels[i], values[i] });
+				table.EditRow(selected, { table.schema[i].name, values[i] });
 			}
 		}
 		else {

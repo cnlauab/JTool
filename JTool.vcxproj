@@ -149,7 +149,6 @@
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="MainFrame.cpp" />
     <ClCompile Include="Row.cpp" />
-    <ClCompile Include="SchemaDialog.cpp" />
     <ClCompile Include="Table.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -159,7 +158,6 @@
     <ClInclude Include="Log.h" />
     <ClInclude Include="MainFrame.h" />
     <ClInclude Include="Row.h" />
-    <ClInclude Include="SchemaDialog.h" />
     <ClInclude Include="Table.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

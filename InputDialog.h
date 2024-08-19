@@ -3,11 +3,12 @@
 #include <wx/wx.h>
 #include <vector>
 #include <string>
+#include "Field.h"
 
 class InputDialog : public wxDialog
 {
 public:
-    InputDialog(std::vector<std::string>& labels,
+    InputDialog(std::vector<Field>& fields,
         std::vector<std::string>& prefill,
         wxWindow* parent,
         wxWindowID id = wxID_ANY,
@@ -20,14 +21,15 @@ public:
         auto mainSizer = new wxBoxSizer(wxVERTICAL);
 
         int prefillCounter = 0;
-        for (auto label : labels) {
+        for (int i = 0; i < fields.size(); i++){
+            Field field = fields[i];
             std::string prefillString = "";
             if (prefillCounter < prefill.size()) {
                 prefillString = prefill[prefillCounter];
                 prefillCounter++;
             }
             auto sizer = new wxBoxSizer(wxHORIZONTAL);
-            auto labelText = new wxStaticText(this, wxID_ANY, label);
+            auto labelText = new wxStaticText(this, wxID_ANY, field.name);
             auto textCtrl = new wxTextCtrl(this, wxID_ANY, prefillString, wxDefaultPosition, wxSize(200, 20));
             textCtrls.push_back(textCtrl);
             sizer->Add(labelText);
@@ -50,5 +52,9 @@ public:
 
 private:
     std::vector<wxTextCtrl*> textCtrls;
+
+    wxComboBox* createTypeSelection() {
+
+   }
 };
 

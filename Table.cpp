@@ -17,7 +17,7 @@ Table::Table(Json::Value& root) {
 		for (int i = 0; i < s; i++) {
 			std::string key = root["schema"][i]["name"].asString();
 			std::string value = root["schema"][i]["type"].asString();
-			schema.emplace_back(std::pair( key,value ));
+			schema.emplace_back(Field(key,value));
 			fieldIndex[key] = i;
 		}
 	}
@@ -27,8 +27,8 @@ Table::Table(Json::Value& root) {
 			size++;
 			std::map<std::string, std::string> row;
 			for (auto field : schema) {
-				std::string key = field.first;
-				std::string value = root["data"][i][field.first].asString();
+				std::string key = field.name;
+				std::string value = root["data"][i][field.name].asString();
 				row.insert({ key, value});
 			}
 			AddRow(row);
@@ -40,7 +40,7 @@ bool Table::AddField(std::string name, std::string type)
 {
 	bool result = fieldIndex.find(name) == fieldIndex.end();
 	if (result) {
-		schema.emplace_back(std::pair(name, type));
+		schema.emplace_back(Field(name, type));
 		fieldIndex[name] = schema.size() - 1;
 	}
 	return result;
@@ -60,8 +60,8 @@ bool Table::DeleteField(std::string name)
 		}
 		//schema
 		for (int j = i; j <= schema.size() - 2; j++) {
-			schema[j].first = schema[j + 1].first;
-			schema[j].second = schema[j + 1].second;
+			schema[j].name = schema[j + 1].name;
+			schema[j].type = schema[j + 1].type;
 		}
 		schema.pop_back();
 		//data
@@ -77,7 +77,7 @@ bool Table::EditField(std::string name, std::string type)
 	bool result = fieldIndex.find(name) != fieldIndex.end();
 	if (result) {
 		int i = fieldIndex[name];
-		schema[i].second = type;
+		schema[i].type = type;
 	}
 	return result;
 }
@@ -115,7 +115,7 @@ std::string Table::toString() {
 	result += "Name: " + name + "\n";
 	result += "\nSchema: \n";
 	for (auto pair : schema) {
-		result += pair.first + ", " + pair.second + "\n";
+		result += pair.name + ", " + pair.type + "\n";
 	}
 
 	result += "\nField Index: \n";
@@ -138,12 +138,12 @@ Json::Value Table::toJson()
 	root["id"] = id;
 	root["name"] = name;
 	for (int i = 0; i < schema.size(); i++) {
-		root["schema"][i]["name"] = schema[i].first;
-		root["schema"][i]["type"] = schema[i].second;
+		root["schema"][i]["name"] = schema[i].name;
+		root["schema"][i]["type"] = schema[i].type;
 	}
 	for (int i = 0; i < data.size(); i++) {
 		for (int j = 0; j < schema.size(); j++) {
-			std::string key = schema[j].first;
+			std::string key = schema[j].name;
 			root["data"][i][key] = data[i].GetCell(key);
 		}
 	}
